@@ -26,12 +26,65 @@ UefiMain(IN
          IN
          EFI_SYSTEM_TABLE *SystemTable)
 {
-    gST->ConOut->EnableCursor(gST->ConOut, 0);
+  EFI_INPUT_KEY key;
 
     hg_game_state_t gState;
     hg_game_state_init(&gState);
 
-    hg_draw_screen(&gState);
+  EFI_EVENT events[1];
+  events[0] = gST->ConIn->WaitForKey;
 
-    return EFI_SUCCESS;
+  gST->ConOut->EnableCursor(gST->ConOut, 0);
+
+  hg_draw_screen(&gState);
+
+  UINTN eventType;
+  hg_cursor_t cursor_loc;
+
+  cursor_loc.x = 0;
+  cursor_loc.y = 0;
+
+  do
+  {
+    gBS->WaitForEvent(1, events, &eventType);
+
+    if (eventType == 0)
+    {
+      gST->ConIn->ReadKeyStroke(gST->ConIn, &key);
+      __hg_print_with_colour_at(L" ", EFI_BACKGROUND_BLACK, cursor_loc.x, cursor_loc.y);
+
+      switch (key.ScanCode)
+      {
+      case SCAN_UP:
+        if (cursor_loc.y - 1 > 0)
+        {
+          cursor_loc.y--;
+        }
+        break;
+      case SCAN_DOWN:
+        if (cursor_loc.y + 1 < HG_RES_Y)
+        {
+          cursor_loc.y++;
+        }
+        break;
+      case SCAN_LEFT:
+        if (cursor_loc.x - 1 > 0)
+        {
+          cursor_loc.x--;
+        }
+        break;
+      case SCAN_RIGHT:
+        if (cursor_loc.x + 1 < HG_RES_X)
+        {
+          cursor_loc.x++;
+        }
+        break;
+      default:
+        break;
+      }
+      __hg_print_with_colour_at(L" ", EFI_BACKGROUND_LIGHTGRAY, cursor_loc.x, cursor_loc.y);
+    }
+  } while (key.ScanCode != SCAN_END);
+
+  return EFI_SUCCESS;
 }
