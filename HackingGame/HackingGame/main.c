@@ -46,42 +46,45 @@ UefiMain(IN
         hg_draw_screen(&gState, cursor_loc.x, cursor_loc.y);
         gBS->WaitForEvent(1, events, &eventType);
 
-        if (eventType == 0) {
-            gST->ConIn->ReadKeyStroke(gST->ConIn, &key);
-            switch (key.ScanCode) {
-            case SCAN_UP:
+        if (eventType != 0) {
+            continue;
+        }
+        gST->ConIn->ReadKeyStroke(gST->ConIn, &key);
+        switch (key.ScanCode) {
+        case SCAN_UP:
+            if (cursor_loc.y - 1 > 0) {
+                cursor_loc.y--;
+            }
+            break;
+        case SCAN_DOWN:
+            if (cursor_loc.y + 1 < HG_GRID_COLS) {
+                cursor_loc.y++;
+            }
+            break;
+        case SCAN_LEFT:
+            if (cursor_loc.x - 1 > 0) {
+                cursor_loc.x--;
+            } else {
                 if (cursor_loc.y - 1 > 0) {
+                    cursor_loc.x = HG_GRID_ROWS - 1;
                     cursor_loc.y--;
                 }
-                break;
-            case SCAN_DOWN:
+            }
+            break;
+        case SCAN_RIGHT:
+            if (cursor_loc.x + 1 < HG_GRID_ROWS) {
+                cursor_loc.x++;
+            } else {
                 if (cursor_loc.y + 1 < HG_GRID_COLS) {
+                    cursor_loc.x = 0;
                     cursor_loc.y++;
                 }
-                break;
-            case SCAN_LEFT:
-                if (cursor_loc.x - 1 > 0) {
-                    cursor_loc.x--;
-                } else {
-                    if (cursor_loc.y - 1 > 0) {
-                        cursor_loc.x = HG_GRID_ROWS - 1;
-                        cursor_loc.y--;
-                    }
-                }
-                break;
-            case SCAN_RIGHT:
-                if (cursor_loc.x + 1 < HG_GRID_ROWS) {
-                    cursor_loc.x++;
-                } else {
-                    if (cursor_loc.y + 1 < HG_GRID_COLS) {
-                        cursor_loc.x = 0;
-                        cursor_loc.y++;
-                    }
-                }
-                break;
-            default:
-                break;
             }
+            break;
+        default:
+            // TODO: This is stanky
+            hg_submit_event(&gState, cursor_loc.x, cursor_loc.y);
+            break;
         }
     } while (key.ScanCode != SCAN_END);
 
