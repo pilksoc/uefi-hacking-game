@@ -14,16 +14,16 @@ jobs:
             
             - name: Create bootable ISO
               run: |
-                dd if=/dev/zero of=disk.iso bs=1M count=4
+                dd if=/dev/zero of=disk.iso bs=1M count=10
                 parted --script disk.iso \
                   mklabel gpt \
                   mkpart primary fat32 0% 100% \
                   set 1 esp on \
                   print
                 sudo losetup --partscan /dev/loop23 disk.iso
-                sudo mkfs.fat -F16 /dev/loop23
+                sudo mkfs.fat -F16 /dev/loop23p1
                 sudo mkdir /mnt/game
-                sudo mount /dev/loop23 /mnt/game
+                sudo mount /dev/loop23p1 /mnt/game
                 sudo mkdir -p /mnt/game/efi/boot
 
             - uses: actions/checkout@v4
