@@ -38,14 +38,14 @@ void hg_game_state_init(hg_game_state_t *state)
     }
 }
 
-size_t __hg_get_word_index_at(hg_game_state_t *state, size_t x_in, size_t y_in)
+size_t __hg_get_word_no_at(hg_game_state_t *state, size_t x_in, size_t y_in)
 {
     size_t word_cnt = 0;
     int matching_word = 0;
-    for (size_t x = 0; x < HG_GRID_ROWS; x++) {
-        for (size_t y = 0; y < HG_GRID_COLS; y++) {
+    for (size_t y = 0; y < HG_GRID_COLS; y++) {
+        for (size_t x = 0; x < HG_GRID_ROWS; x++) {
             if (y >= y_in && x > x_in) {
-                break;
+                return word_cnt -1;
             }
 
             if (state->grid[x][y] == HG_WORD && !matching_word) {
@@ -61,6 +61,15 @@ size_t __hg_get_word_index_at(hg_game_state_t *state, size_t x_in, size_t y_in)
 
 hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x, size_t y)
 {
+    size_t word_no = __hg_get_word_no_at(state, x, y);
+    if (state->word_indexes[word_no] == state->correct_word_index) {
+        return HG_SUBMIT_WORD_SUCCESS;
+    }
+    state->retries--;
+    return HG_SUBMIT_WORD_FAIL;
+}
+
+/*
     // Scan back to the word start
     size_t x_start = x, y_start = y;
     while (1) {
@@ -81,9 +90,7 @@ hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x
         x_start = x_next;
         y_start = y_next;
     }
-
-    return HG_SUBMIT_INVALID;
-}
+*/
 
 hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y)
 {

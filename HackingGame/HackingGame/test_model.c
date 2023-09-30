@@ -68,9 +68,9 @@ static int test_get_word_at_1()
 {
     hg_game_state_t state;
     memset(&state, 0, sizeof(state));
-    memset(&state.grid, HG_WORD, sizeof(state.grid));
+    memset(state.grid, HG_WORD, sizeof(state.grid));
 
-    ASSERT(__hg_get_word_index_at(&state, 0, 0) == 0);
+    ASSERT(__hg_get_word_no_at(&state, 0, 0) == 0);
     return 1;
 }
 
@@ -78,7 +78,7 @@ static int test_get_word_at_2()
 {
     hg_game_state_t state;
     memset(&state, 0, sizeof(state));
-    memset(&state.grid, HG_NOISE_1, sizeof(state.grid));
+    memset(state.grid, HG_NOISE_1, sizeof(state.grid));
 
     state.grid[0][0] = HG_WORD;
     state.grid[0][2] = HG_WORD;
@@ -87,11 +87,57 @@ static int test_get_word_at_2()
     state.grid[0][7] = HG_WORD;
     state.grid[10][10] = HG_WORD;
 
-    ASSERT(__hg_get_word_index_at(&state, 10, 10) == 4);
+    ASSERT(__hg_get_word_no_at(&state, 10, 10) == 5);
+    return 1;
+}
+
+static int test_submit_invalid_word()
+{
+    hg_game_state_t state;
+    memset(&state, 0, sizeof(state));
+    memset(state.grid, HG_NOISE_1, sizeof(state.grid));
+    state.correct_word_index = 123;
+    state.word_indexes[0] = 123;
+
+    state.grid[0][0] = HG_WORD;
+    state.grid[0][2] = HG_WORD;
+    state.grid[0][4] = HG_WORD;
+    state.grid[0][6] = HG_WORD;
+    state.grid[0][7] = HG_WORD;
+    state.grid[10][10] = HG_WORD;
+
+    ASSERT(__hg_submit_event_handle_word(&state, 10, 10) == hg_submit_event(&state, 10, 10));
+
+    state.retries = 1;
+    ASSERT(__hg_submit_event_handle_word(&state, 10, 10) == HG_SUBMIT_WORD_FAIL);
+    ASSERT(state.retries == 0);
+    return 1;
+}
+
+static int test_submit_valid_word()
+{
+    hg_game_state_t state;
+    memset(&state, 0, sizeof(state));
+    memset(&state.grid, HG_NOISE_1, sizeof(state.grid));
+    state.correct_word_index = 123;
+    state.word_indexes[0] = 123;
+
+    state.grid[0][0] = HG_WORD;
+    state.grid[0][2] = HG_WORD;
+    state.grid[0][4] = HG_WORD;
+    state.grid[0][6] = HG_WORD;
+    state.grid[0][7] = HG_WORD;
+    state.grid[10][10] = HG_WORD;
+
+    ASSERT(__hg_submit_event_handle_word(&state, 0, 0) == hg_submit_event(&state, 0, 0));
+    ASSERT(__hg_submit_event_handle_word(&state, 0, 0) == HG_SUBMIT_WORD_SUCCESS);
+    ASSERT(state.retries == 0);
     return 1;
 }
 
 SUB_TEST(test_model, {&test_noise_map, "Test noise map"},
 {&test_init_game_state, "Test game state init"},
 {&test_get_word_at_1, "Test get word index 1"},
-{&test_get_word_at_2, "Test get word index 2"})
+{&test_get_word_at_2, "Test get word index 2"},
+{&test_submit_invalid_word, "Test submit invalid word"},
+{&test_submit_valid_word, "Test submit valid word"})
