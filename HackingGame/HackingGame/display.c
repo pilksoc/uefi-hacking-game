@@ -90,7 +90,7 @@ static char __hg_get_char(hg_game_state_t *state, hg_game_tile_t tile, size_t wo
     }
 }
 
-void hg_draw_screen(hg_game_state_t *state)
+void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y)
 {
     __hg_clear_screen();
     __hg_print_with_colour_at(L"WELCOME TO ROBCO INDUSTRIES (TM) TERMLINK\n\0", EFI_GREEN, 0, 0, 0);
@@ -106,6 +106,7 @@ void hg_draw_screen(hg_game_state_t *state)
 
     size_t count = 0;
     size_t word_offset = -1;
+    char cursor = 0;
 
     for (size_t y_raw = 0; y_raw < HG_GRID_COLS / 2; y_raw++) {
         size_t y = y_raw * 2;
@@ -119,7 +120,13 @@ void hg_draw_screen(hg_game_state_t *state)
                 word_offset = 0;
             }
 
-            __hg_print_with_colour_at(L"%c\0", EFI_GREEN, x + 8, offset_y, __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset));
+            char c = __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset);
+            int colour = EFI_GREEN;
+            if (x == cursor_x && y == cursor_y) {
+                colour |= EFI_BACKGROUND_LIGHTGRAY;
+                cursor = c;
+            }
+            __hg_print_with_colour_at(L"%c\0", colour, x + 8, offset_y, c);
         }
         count++;
 
@@ -134,10 +141,16 @@ void hg_draw_screen(hg_game_state_t *state)
                 word_offset = -1;
             }
 
-            __hg_print_with_colour_at(L"%c\0", EFI_GREEN, x + 8 + offset_x, offset_y, __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset));
+            char c = __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset);
+            int colour = EFI_GREEN;
+            if (x == cursor_x && y == cursor_y) {
+                colour |= EFI_BACKGROUND_LIGHTGRAY;
+                cursor = c;
+            }
+            __hg_print_with_colour_at(L"%c\0", colour, x + 8 + offset_x, offset_y, c);
         }
         count++;
     }
 
-    __hg_print_with_colour_at(L">\n\0", EFI_GREEN, 0, HG_GRID_COLS + 8, 0);
+    __hg_print_with_colour_at(L"> %c\0", EFI_GREEN, 0, HG_GRID_COLS + 8, cursor);
 }

@@ -36,8 +36,6 @@ UefiMain(IN
 
     gST->ConOut->EnableCursor(gST->ConOut, 0);
 
-    hg_draw_screen(&gState);
-
     UINTN eventType;
     hg_cursor_t cursor_loc;
 
@@ -45,12 +43,11 @@ UefiMain(IN
     cursor_loc.y = 0;
 
     do {
+        hg_draw_screen(&gState, cursor_loc.x, cursor_loc.y);
         gBS->WaitForEvent(1, events, &eventType);
 
         if (eventType == 0) {
             gST->ConIn->ReadKeyStroke(gST->ConIn, &key);
-            __hg_print_with_colour_at(L" ", EFI_BACKGROUND_BLACK, cursor_loc.x, cursor_loc.y, 0);
-
             switch (key.ScanCode) {
             case SCAN_UP:
                 if (cursor_loc.y - 1 > 0) {
@@ -58,24 +55,33 @@ UefiMain(IN
                 }
                 break;
             case SCAN_DOWN:
-                if (cursor_loc.y + 1 < HG_RES_Y) {
+                if (cursor_loc.y + 1 < HG_GRID_COLS) {
                     cursor_loc.y++;
                 }
                 break;
             case SCAN_LEFT:
                 if (cursor_loc.x - 1 > 0) {
                     cursor_loc.x--;
+                } else {
+                    if (cursor_loc.y - 1 > 0) {
+                        cursor_loc.x = HG_GRID_ROWS - 1;
+                        cursor_loc.y--;
+                    }
                 }
                 break;
             case SCAN_RIGHT:
-                if (cursor_loc.x + 1 < HG_RES_X) {
+                if (cursor_loc.x + 1 < HG_GRID_ROWS) {
                     cursor_loc.x++;
+                } else {
+                    if (cursor_loc.y + 1 < HG_GRID_COLS) {
+                        cursor_loc.x = 0;
+                        cursor_loc.y++;
+                    }
                 }
                 break;
             default:
                 break;
             }
-            __hg_print_with_colour_at(L" ", EFI_BACKGROUND_LIGHTGRAY, cursor_loc.x, cursor_loc.y, 0);
         }
     } while (key.ScanCode != SCAN_END);
 
