@@ -15,7 +15,7 @@ void __hg_clear_screen()
 
 void __hg_move_cursor_to(int x, int y)
 {
-    gST->ConOut->SetCursorPosition(gST->ConOut, x - 1, y - 1);
+    gST->ConOut->SetCursorPosition(gST->ConOut, x, y);
 }
 
 void __hg_set_colour(int colour)
@@ -37,7 +37,7 @@ static char __hg_get_char(hg_game_state_t *state, hg_game_tile_t tile, size_t wo
     case HG_WORD:
         s = hg_word_at(state->word_indexes[word_index], ret);
         if (s) {
-            return ret[word_offset] - 'a' + 'A';
+            return ret[word_offset];
         } else {
             return '-';
         }
@@ -94,26 +94,23 @@ void hg_draw_screen(hg_game_state_t *state)
 {
     __hg_clear_screen();
     __hg_print_with_colour_at(L"WELCOME TO ROBCO INDUSTRIES (TM) TERMLINK\n\0", EFI_GREEN, 0, 0, 0);
-    __hg_print_with_colour_at(L"ENTER PASSWORD NOW\n\0", EFI_GREEN, 0, 2, 0);
 
-    size_t attemps_y = 4;
-    __hg_print_with_colour_at(L"%d ATTEMPTS LEFT:\0", EFI_GREEN, 0, attemps_y, state->retries);
+    __hg_print_with_colour_at(L"ENTER PASSWORD NOW\n\0", EFI_GREEN, 0, 1, 0);
+
+    size_t attemps_y = 2;
+    __hg_print_with_colour_at(L"%d ATTEMPTS LEFT: \0", EFI_GREEN, 0, attemps_y, state->retries);
 
     for (size_t i = 0; i < state->retries; i++) {
-        __hg_print_with_colour_at(L"X\0", EFI_GREEN, sizeof("12 ATTEMPTS LEFT:  ") + i * 2, attemps_y, 0);
-
-        if (i == state->retries - 1) {
-            __hg_print_with_colour_at(L"\n\0", EFI_GREEN, sizeof("12 ATTEMPTS LEFT:  ") + 2 + i * 2, attemps_y, 0);
-        }
+        __hg_print_with_colour_at(L" X\0", EFI_GREEN, sizeof("1 ATTEMPTS LEFT: ") + i * 2, attemps_y, 0);
     }
 
     size_t count = 0;
     size_t word_offset = -1;
 
-    for (size_t y_raw = 0; y_raw < HG_GRID_COLS / 2; y_raw++, count++) {
-        size_t y = y_raw / 2;
-        size_t offset_y = y + 5;
-        __hg_print_with_colour_at(L"\n0xF7%02d\0", EFI_GREEN, 0, offset_y, count);
+    for (size_t y_raw = 0; y_raw < HG_GRID_COLS / 2; y_raw++) {
+        size_t y = y_raw * 2;
+        size_t offset_y = y_raw + 6;
+        __hg_print_with_colour_at(L"0xF7%02d\0", EFI_GREEN, 0, offset_y, count);
 
         for (size_t x = 0; x < HG_GRID_ROWS; x++) {
             if (state->grid[x][y] == HG_WORD) {
@@ -124,9 +121,10 @@ void hg_draw_screen(hg_game_state_t *state)
 
             __hg_print_with_colour_at(L"%c\0", EFI_GREEN, x + 8, offset_y, __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset));
         }
+        count++;
 
-        y = y_raw / 2 + 1;
-        size_t offset_x = sizeof("0faaaa    ") + HG_GRID_ROWS;
+        y = y_raw * 2 + 1;
+        size_t offset_x = sizeof("0xaaaa    ") + HG_GRID_ROWS;
         __hg_print_with_colour_at(L"0xF7%02d\0", EFI_GREEN, offset_x, offset_y, count);
 
         for (size_t x = 0; x < HG_GRID_ROWS; x++) {
@@ -138,7 +136,8 @@ void hg_draw_screen(hg_game_state_t *state)
 
             __hg_print_with_colour_at(L"%c\0", EFI_GREEN, x + 8 + offset_x, offset_y, __hg_get_char(state, state->grid[x][y], __hg_get_word_no_at(state, x, y), word_offset));
         }
+        count++;
     }
 
-    __hg_print_with_colour_at(L">\n\0", EFI_GREEN, 0, HG_GRID_COLS + 6, 0);
+    __hg_print_with_colour_at(L">\n\0", EFI_GREEN, 0, HG_GRID_COLS + 8, 0);
 }

@@ -1,6 +1,6 @@
 with open("./english3.txt", "r") as file:
     words = list(
-        map(lambda x: x[:-1],
+        map(lambda x: x[:-1].upper(),
             filter(lambda x: len(x) == 6 and "'" not in x, [line for line in file])))
     with open("./words.c", "w") as output:
         print("""/*
