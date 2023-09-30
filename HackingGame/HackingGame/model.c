@@ -37,3 +37,70 @@ void hg_game_state_init(hg_game_state_t *state)
         }
     }
 }
+
+size_t __hg_get_word_index_at(hg_game_state_t *state, size_t x_in, size_t y_in)
+{
+    size_t word_cnt = 0;
+    int matching_word = 0;
+    for (size_t x = 0; x < HG_GRID_ROWS; x++) {
+        for (size_t y = 0; y < HG_GRID_COLS; y++) {
+            if (y >= y_in && x > x_in) {
+                break;
+            }
+
+            if (state->grid[x][y] == HG_WORD && !matching_word) {
+                word_cnt++;
+            }
+
+            matching_word = state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD;
+        }
+    }
+
+    return word_cnt - 1;
+}
+
+hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x, size_t y)
+{
+    // Scan back to the word start
+    size_t x_start = x, y_start = y;
+    while (1) {
+        size_t x_next = x_start, y_next = y_start;
+        x_next--;
+        if (x_next == (size_t) -1) {
+            x_next = HG_GRID_ROWS - 1;
+            y_next--;
+        }
+
+        if (y_next == (size_t) -1) {
+            break;
+        }
+
+        if (state->grid[x_next][y_next] != HG_WORD) {
+            break;
+        }
+        x_start = x_next;
+        y_start = y_next;
+    }
+
+    return HG_SUBMIT_INVALID;
+}
+
+hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y)
+{
+    return HG_SUBMIT_INVALID;
+}
+
+hg_submit_event_t hg_submit_event(hg_game_state_t *state, size_t x, size_t y)
+{
+    switch(state->grid[x][y]) {
+    case HG_WORD:
+        return __hg_submit_event_handle_word(state, x, y);
+    case HG_SQUIGGLE_OPEN:
+    case HG_SQUARE_OPEN:
+    case HG_ROUND_OPEN:
+    case HG_ANGULAR_OPEN:
+        return __hg_submit_event_handle_open_brackets(state, x, y);
+    default:
+        return HG_SUBMIT_INVALID;
+    }
+}

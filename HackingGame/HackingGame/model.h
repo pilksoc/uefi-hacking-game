@@ -45,3 +45,17 @@ typedef struct hg_game_state_t {
 } hg_game_state_t;
 
 void hg_game_state_init(hg_game_state_t *state);
+
+typedef enum hg_submit_event_t {
+    HG_SUBMIT_INVALID,
+    HG_SUBMIT_WORD_FAIL,
+    HG_SUBMIT_WORD_SUCCESS,
+    HG_SUBMIT_FOUND_DUD,
+    HG_SUBMIT_FOUND_RETRY
+} hg_submit_event_t;
+
+hg_submit_event_t hg_submit_event(hg_game_state_t *state, size_t x, size_t y);
+
+size_t __hg_get_word_index_at(hg_game_state_t *state, size_t x, size_t y);
+hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x, size_t y);
+hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y);
