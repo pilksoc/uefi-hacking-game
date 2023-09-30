@@ -26,28 +26,23 @@ void hg_game_state_init(hg_game_state_t *state)
     state->retries = HG_STARTING_RETRIES;
 
     // Generate random words
-    for (size_t i = 0; i < HG_WORD_COUNT; i++)
-    {
+    for (size_t i = 0; i < HG_WORD_COUNT; i++) {
         state->word_indexes[i] = random() % hg_word_count();
     }
     state->correct_word_index = state->word_indexes[random() % HG_WORD_COUNT];
 
     // Populate the grid with noise
-    for (size_t x = 0; x < HG_GRID_ROWS; x++)
-    {
-        for (size_t y = 0; y < HG_GRID_COLS; y++)
-        {
+    for (size_t x = 0; x < HG_GRID_ROWS; x++) {
+        for (size_t y = 0; y < HG_GRID_COLS; y++) {
             state->grid[x][y] = __HG_NOISE_SEG_START + 1 + random() % HG_NOISE_VARIENTS;
         }
     }
 
     // Add words to the grid
     size_t grid_offset = -HG_WORD_MIN_GAP; // This allows the start to be a word
-    for (size_t i = 0; i < HG_WORD_COUNT; i++)
-    {
+    for (size_t i = 0; i < HG_WORD_COUNT; i++) {
         grid_offset += HG_WORD_MIN_GAP + random() % HG_WORD_MAX_GAP;
-        for (size_t j = 0; j < HG_WORD_LENGTH; j++)
-        {
+        for (size_t j = 0; j < HG_WORD_LENGTH; j++) {
             size_t x = grid_offset % HG_GRID_ROWS;
             size_t y = grid_offset / HG_GRID_ROWS;
             state->grid[x][y] = HG_WORD;
@@ -66,7 +61,7 @@ size_t __hg_get_word_no_at(hg_game_state_t *state, size_t x_in, size_t y_in)
                 return word_cnt -1;
             }
 
-            if (state->grid[x][y] == HG_WORD && !matching_word) {
+            if ((state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD) && !matching_word) {
                 word_cnt++;
             }
 
@@ -87,31 +82,76 @@ hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x
     return HG_SUBMIT_WORD_FAIL;
 }
 
-/*
-    // Scan back to the word start
-    size_t x_start = x, y_start = y;
-    while (1) {
-        size_t x_next = x_start, y_next = y_start;
-        x_next--;
-        if (x_next == (size_t) -1) {
-            x_next = HG_GRID_ROWS - 1;
-            y_next--;
-        }
-
-        if (y_next == (size_t) -1) {
-            break;
-        }
-
-        if (state->grid[x_next][y_next] != HG_WORD) {
-            break;
-        }
-        x_start = x_next;
-        y_start = y_next;
-    }
-*/
-
-hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y)
+/// Returns true if the brackets match
+static int __hg_submit_event_handle_open_brackets_look_forward(hg_game_state_t *state, size_t x_in, size_t y_in)
 {
+    for (size_t y = y_in; y < HG_GRID_COLS; y++) {
+        for (size_t x = 0; x < HG_GRID_ROWS; x++) {
+            if (y == y_in && x < x_in) {
+                continue;
+            }
+
+            switch(state->grid[x][y]) {
+            case HG_SQUIGGLE_CLOSE:
+                return state->grid[x_in][y_in] == HG_SQUIGGLE_OPEN;
+            case HG_SQUARE_CLOSE:
+                return state->grid[x_in][y_in] == HG_SQUARE_OPEN;
+            case HG_ROUND_CLOSE:
+                return state->grid[x_in][y_in] == HG_ROUND_OPEN;
+            case HG_ANGULAR_CLOSE:
+                return state->grid[x_in][y_in] == HG_ANGULAR_OPEN;
+            case HG_WORD:
+            case HG_WORD_DUD:
+                return 0;
+            default:
+                continue;
+            }
+        }
+    }
+    return 0;
+}
+
+static void __hg_make_dud(hg_game_state_t *state, size_t dud_index)
+{
+    size_t word_cnt = 0;
+    int matching_word = 0;
+    for (size_t y = 0; y < HG_GRID_COLS; y++) {
+        for (size_t x = 0; x < HG_GRID_ROWS; x++) {
+            if ((state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD) && !matching_word) {
+                word_cnt++;
+            }
+
+            if (word_cnt > dud_index) {
+                return;
+            }
+
+            if (matching_word && word_cnt == dud_index) {
+                state->grid[x][y] = HG_WORD_DUD;
+            }
+
+            matching_word = state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD;
+        }
+    }
+}
+
+hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y, size_t (*random)())
+{
+    int ret = __hg_submit_event_handle_open_brackets_look_forward(state, x, y);
+    if (ret) {
+        if (random() & 2) {
+            state->retries++;
+            return HG_SUBMIT_FOUND_RETRY;
+        } else {
+            size_t dud_index = random() % HG_WORD_COUNT;
+            while (state->correct_word_index == dud_index || state->word_indexes[dud_index] == HG_DUD_INDEX) {
+                dud_index++;
+                dud_index %= HG_WORD_COUNT;
+            }
+            state->word_indexes[dud_index] = HG_DUD_INDEX;
+            __hg_make_dud(state, dud_index);
+            return HG_SUBMIT_FOUND_DUD;
+        }
+    }
     return HG_SUBMIT_INVALID;
 }
 
@@ -124,7 +164,7 @@ hg_submit_event_t hg_submit_event(hg_game_state_t *state, size_t x, size_t y)
     case HG_SQUARE_OPEN:
     case HG_ROUND_OPEN:
     case HG_ANGULAR_OPEN:
-        return __hg_submit_event_handle_open_brackets(state, x, y);
+        return __hg_submit_event_handle_open_brackets(state, x, y, &random);
     default:
         return HG_SUBMIT_INVALID;
     }
