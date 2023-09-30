@@ -3,6 +3,7 @@
 #include <Library/UefiLib.h>
 #include <Protocol/Timer.h>
 #include <Library/UefiBootServicesTableLib.h>
+#include "display.h"
 
 /**
   The user Entry Point for Application. The user code starts with this function
@@ -16,11 +17,13 @@
 
 **/
 EFI_STATUS EFIAPI
-UefiMain (IN
-          EFI_HANDLE ImageHandle, IN
-          EFI_SYSTEM_TABLE *SystemTable)
+UefiMain(IN
+             EFI_HANDLE ImageHandle,
+         IN
+             EFI_SYSTEM_TABLE *SystemTable)
 {
 
-    Print(L"TESTING 123");
-    return EFI_SUCCESS;
+  Print(L"TESTING 123");
+  testThis();
+  return EFI_SUCCESS;
 }
