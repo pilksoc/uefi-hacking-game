@@ -1,7 +1,6 @@
 #include "./model.h"
 #include "words.h"
 #include <stdlib.h>
-#include <string.h>
 
 #define HG_STARTING_RETRIES 5
 #define HG_WORD_MIN_GAP 3
