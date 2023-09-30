@@ -14,7 +14,7 @@ jobs:
             
             - name: Create bootable ISO
               run: |
-                dd if=/dev/zero of=disk-amd64.iso bs=1M count=10
+                dd if=/dev/zero of=${{ github.workspace }}/disk-amd64.iso bs=1M count=10
                 parted --script ${{ github.workspace }}/disk-amd64.iso \
                   mklabel gpt \
                   mkpart primary fat32 0% 100% \
