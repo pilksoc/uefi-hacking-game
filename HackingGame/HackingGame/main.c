@@ -22,15 +22,16 @@
 **/
 EFI_STATUS EFIAPI
 UefiMain(IN
-             EFI_HANDLE ImageHandle,
+         EFI_HANDLE ImageHandle,
          IN
-             EFI_SYSTEM_TABLE *SystemTable)
+         EFI_SYSTEM_TABLE *SystemTable)
 {
+    gST->ConOut->EnableCursor(gST->ConOut, 0);
 
-  hg_game_state_t gState;
-  hg_game_state_init(&gState);
+    hg_game_state_t gState;
+    hg_game_state_init(&gState);
 
-  hg_draw_screen(&gState);
+    hg_draw_screen(&gState);
 
-  return EFI_SUCCESS;
+    return EFI_SUCCESS;
 }
