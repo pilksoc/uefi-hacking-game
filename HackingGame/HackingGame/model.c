@@ -1,11 +1,25 @@
 #include "./model.h"
 #include "words.h"
-#include <stdlib.h>
 
 #define HG_STARTING_RETRIES 5
 #define HG_WORD_MIN_GAP 3
 /// The subtraction now means you can do HG_WORD_MIN_GAP + random() % HG_WORD_MAX_GAP
 #define HG_WORD_MAX_GAP (7 - HG_WORD_MIN_GAP)
+
+static size_t random()
+{
+    static unsigned long x=123456789, y=362436069, z=521288629;
+    static unsigned long t;
+    x ^= x << 16;
+    x ^= x >> 5;
+    x ^= x << 1;
+    t = x;
+    x = y;
+    y = z;
+    z = t ^ x ^ y;
+
+    return t;
+}
 
 void hg_game_state_init(hg_game_state_t *state)
 {
