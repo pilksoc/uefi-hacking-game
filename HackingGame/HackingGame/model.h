@@ -4,6 +4,7 @@
 #define HG_WORD_COUNT 15
 #define HG_GRID_ROWS 15
 #define HG_GRID_COLS 17
+#define HG_DUD_INDEX ((size_t) -1)
 
 typedef enum hg_game_tile_t {
     HG_WORD,
@@ -45,3 +46,20 @@ typedef struct hg_game_state_t {
 } hg_game_state_t;
 
 void hg_game_state_init(hg_game_state_t *state);
+
+typedef enum hg_submit_event_t {
+    HG_SUBMIT_INVALID,
+    HG_SUBMIT_WORD_FAIL,
+    HG_SUBMIT_WORD_SUCCESS,
+    HG_SUBMIT_FOUND_DUD,
+    HG_SUBMIT_FOUND_RETRY
+} hg_submit_event_t;
+
+hg_submit_event_t hg_submit_event(hg_game_state_t *state, size_t x, size_t y);
+
+/// This will return the word number (0 bound) of which word in the grid it was.
+/// 0 means the first word, that word has its word index in the state under word_indexes
+size_t __hg_get_word_no_at(hg_game_state_t *state, size_t x, size_t y);
+hg_submit_event_t __hg_submit_event_handle_word(hg_game_state_t *state, size_t x, size_t y);
+hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state, size_t x, size_t y, size_t (*random)());
+
