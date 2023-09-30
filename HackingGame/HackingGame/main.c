@@ -4,6 +4,9 @@
 #include <Protocol/Timer.h>
 #include <Library/UefiBootServicesTableLib.h>
 
+#include "model.h"
+#include "display.h"
+
 /**
   The user Entry Point for Application. The user code starts with this function
   as the real entry point for the application.
@@ -14,13 +17,20 @@
   @retval EFI_SUCCESS       The entry point is executed successfully.
   @retval other             Some error occurs when executing this entry point.
 
+
+
 **/
 EFI_STATUS EFIAPI
-UefiMain (IN
-          EFI_HANDLE ImageHandle, IN
-          EFI_SYSTEM_TABLE *SystemTable)
+UefiMain(IN
+             EFI_HANDLE ImageHandle,
+         IN
+             EFI_SYSTEM_TABLE *SystemTable)
 {
 
-    Print(L"TESTING 123");
-    return EFI_SUCCESS;
+  hg_game_state_t gState;
+  hg_game_state_init(&gState);
+
+  hg_draw_screen(&gState);
+
+  return EFI_SUCCESS;
 }
