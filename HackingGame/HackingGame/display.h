@@ -27,4 +27,4 @@ void __hg_reset_colour();
     __hg_move_cursor_to(x, y); \
     Print(format, __VA_ARGS__);
 
-void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y);
+void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y, hg_submit_event_t last);

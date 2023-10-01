@@ -35,6 +35,10 @@ void hg_game_state_init(hg_game_state_t *state)
     for (size_t x = 0; x < HG_GRID_ROWS; x++) {
         for (size_t y = 0; y < HG_GRID_COLS; y++) {
             state->grid[x][y] = __HG_NOISE_SEG_START + 1 + random() % HG_NOISE_VARIENTS;
+
+            if (random() % 13 == 0) {
+                state->grid[x][y] = HG_ANGULAR_OPEN + random() % (HG_SQUIGGLE_CLOSE - HG_ANGULAR_OPEN);
+            }
         }
     }
 

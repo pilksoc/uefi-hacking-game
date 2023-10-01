@@ -90,7 +90,7 @@ static char __hg_get_char(hg_game_state_t *state, hg_game_tile_t tile, size_t wo
     }
 }
 
-void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y)
+void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y, hg_submit_event_t event)
 {
     __hg_clear_screen();
     __hg_print_with_colour_at(L"WELCOME TO ROBCO INDUSTRIES (TM) TERMLINK\n\0", EFI_GREEN, 0, 0, 0);
@@ -150,6 +150,26 @@ void hg_draw_screen(hg_game_state_t *state, size_t cursor_x, size_t cursor_y)
             __hg_print_with_colour_at(L"%c\0", colour, x + 8 + offset_x, offset_y, c);
         }
         count++;
+    }
+
+    int colour = EFI_GREEN;
+    size_t offset_y = HG_GRID_COLS + 6;
+    switch(event) {
+    case HG_SUBMIT_INVALID:
+        __hg_print_with_colour_at(L"WHAT ARE YOU DOING", colour, 0, offset_y, 0);
+        break;
+    case HG_SUBMIT_WORD_FAIL:
+        __hg_print_with_colour_at(L"PASSWORD INCORRECT", colour, 0, offset_y, 0);
+        break;
+    case HG_SUBMIT_WORD_SUCCESS:
+        __hg_print_with_colour_at(L"PASSWORD CORRECT", colour, 0, offset_y, 0);
+        break;
+    case HG_SUBMIT_FOUND_DUD:
+        __hg_print_with_colour_at(L"REMOVED A DUD", colour, 0, offset_y, 0);
+        break;
+    case HG_SUBMIT_FOUND_RETRY:
+        __hg_print_with_colour_at(L"EXTRA RETRY ADDED", colour, 0, offset_y, 0);
+        break;
     }
 
     __hg_print_with_colour_at(L"> %c\0", EFI_GREEN, 0, HG_GRID_COLS + 8, cursor);

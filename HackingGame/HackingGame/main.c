@@ -42,8 +42,10 @@ UefiMain(IN
     cursor_loc.x = 0;
     cursor_loc.y = 0;
 
+    hg_submit_event_t last = HG_SUBMIT_INVALID;
+
     do {
-        hg_draw_screen(&gState, cursor_loc.x, cursor_loc.y);
+        hg_draw_screen(&gState, cursor_loc.x, cursor_loc.y, last);
         gBS->WaitForEvent(1, events, &eventType);
 
         if (eventType != 0) {
@@ -83,10 +85,11 @@ UefiMain(IN
             break;
         default:
             // TODO: This is stanky
-            hg_submit_event(&gState, cursor_loc.x, cursor_loc.y);
+            last = hg_submit_event(&gState, cursor_loc.x, cursor_loc.y);
             break;
         }
-    } while (key.ScanCode != SCAN_END);
+    } while (key.ScanCode != SCAN_END && gState.retries > 0 && last != HG_SUBMIT_WORD_SUCCESS);
+    hg_draw_screen(&gState, cursor_loc.x, cursor_loc.y, last);
 
     return EFI_SUCCESS;
 }
