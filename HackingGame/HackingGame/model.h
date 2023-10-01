@@ -3,7 +3,7 @@
 
 #define HG_WORD_COUNT 15
 #define HG_GRID_ROWS 15
-#define HG_GRID_COLS 17
+#define HG_GRID_COLS 18
 #define HG_DUD_INDEX ((size_t) -1)
 
 typedef enum hg_game_tile_t {

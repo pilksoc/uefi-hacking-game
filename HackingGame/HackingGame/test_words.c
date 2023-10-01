@@ -18,7 +18,7 @@ static int test_get_word_at()
         memset(zero_word, 0, sizeof(zero_word));
 
         ASSERT(hg_word_at(i, word));
-        ASSERT(memcmp(word, zero_word, sizeof(word)) == 0);
+        ASSERT(memcmp(word, zero_word, sizeof(word)) != 0);
     }
     return 1;
 }
