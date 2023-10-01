@@ -54,7 +54,7 @@ UefiMain(IN
         gST->ConIn->ReadKeyStroke(gST->ConIn, &key);
         switch (key.ScanCode) {
         case SCAN_UP:
-            if (cursor_loc.y - 1 > 0) {
+            if (cursor_loc.y - 1 >= 0) {
                 cursor_loc.y--;
             }
             break;
@@ -64,7 +64,7 @@ UefiMain(IN
             }
             break;
         case SCAN_LEFT:
-            if (cursor_loc.x - 1 > 0) {
+            if (cursor_loc.x - 1 >= 0) {
                 cursor_loc.x--;
             } else {
                 if (cursor_loc.y - 1 > 0) {
