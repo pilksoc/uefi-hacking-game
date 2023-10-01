@@ -142,14 +142,19 @@ hg_submit_event_t __hg_submit_event_handle_open_brackets(hg_game_state_t *state,
 {
     int ret = __hg_submit_event_handle_open_brackets_look_forward(state, x, y);
     if (ret) {
+        state->grid[x][y] = HG_NOISE_1; // Janky lmao
         if (random() & 2) {
             state->retries++;
             return HG_SUBMIT_FOUND_RETRY;
         } else {
             size_t dud_index = random() % HG_WORD_COUNT;
+            size_t initial = dud_index;
             while (state->correct_word_index == dud_index || state->word_indexes[dud_index] == HG_DUD_INDEX) {
                 dud_index++;
                 dud_index %= HG_WORD_COUNT;
+                if (dud_index == initial) {
+                    return HG_SUBMIT_INVALID;
+                }
             }
             state->word_indexes[dud_index] = HG_DUD_INDEX;
             __hg_make_dud(state, dud_index);
