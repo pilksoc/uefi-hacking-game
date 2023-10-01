@@ -129,11 +129,11 @@ static void __hg_make_dud(hg_game_state_t *state, size_t dud_index)
                 return;
             }
 
+            matching_word = state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD;
+
             if (matching_word && word_cnt == dud_index) {
                 state->grid[x][y] = HG_WORD_DUD;
             }
-
-            matching_word = state->grid[x][y] == HG_WORD || state->grid[x][y] == HG_WORD_DUD;
         }
     }
 }
